@@ -1,0 +1,81 @@
+{
+  "status.ready": "準備完了",
+  "status.offline": "サーバーに接続できません",
+  "status.queued": "待機中…",
+  "status.running": "処理中…",
+  "status.waiting_gpu": "GPUの空き待ち…",
+  "status.preparing": "準備中…",
+  "status.done": "完了",
+  "status.cancelled": "キャンセルしました",
+  "status.failed": "失敗",
+  "status.pending": "待機",
+
+  "drop.title": "動画をドラッグ&ドロップ、またはクリックして選択",
+  "drop.not_video": "動画ファイル(mp4 / mov / webm)ではありません",
+  "drop.replace": "ドロップして差し替え",
+  "drop.busy": "処理中は動画を差し替えられません。中止するか、完了するまでお待ちください",
+  "drop.busy_short": "処理中は差し替えできません",
+
+  "pane.src": "Source",
+  "pane.out": "Result",
+
+  "strip.src": "元動画の一覧",
+  "strip.out": "結果の一覧",
+
+  "thumb.label": "{{name}} — {{status}}",
+
+  "time.remaining": "残り {{v}}",
+  "time.elapsed": "経過 {{v}}",
+  "time.job_remaining": "全体 残り {{v}}",
+  "time.about_sec": "約{{n}}秒",
+  "time.about_min": "約{{n}}分",
+  "time.about_hr": "約{{h}}時間{{m}}分",
+
+  "device.gpu": "GPU",
+  "device.cpu": "CPU",
+  "device.toggle_label": "処理デバイスの切り替え(GPU/CPU)",
+
+  "lang.toggle_label": "表示言語",
+
+  "cpu.slow": "CPUではこの動画に{{v}}かかります。GPUの使用をおすすめします",
+  "cpu.slow_unknown": "CPUではこの動画の処理にかなり時間がかかります。GPUの使用をおすすめします",
+
+  "btn.convert": "Convert",
+  "btn.cancel": "Cancel",
+  "btn.cancelling": "Cancelling…",
+  "btn.clear": "Clear",
+  "btn.retry": "Retry",
+  "btn.download": "Download",
+  "btn.download_all": "Download all (ZIP)",
+  "btn.close": "Close",
+
+  "err.E_INPUT_EXT": "対応していないファイル形式です(mp4 / mov / webm のみ)",
+  "err.E_INPUT_UNREADABLE": "動画ファイルを読み込めませんでした",
+  "err.E_INPUT_TOO_LONG": "動画が長すぎます(60秒・1800フレームまで)",
+  "err.E_INPUT_TOO_LARGE": "ファイルが大きすぎる、または解像度が高すぎます",
+  "err.E_UPLOAD_TOO_LARGE": "アップロードデータが大きすぎます",
+  "err.E_BAD_MODE": "不正なモードです",
+  "err.E_BAD_OVERRIDE": "詳細設定の値が不正です",
+  "err.E_JOB_NOT_FOUND": "ジョブが見つかりません",
+  "err.E_JOB_RUNNING": "処理中のジョブは削除できません",
+  "err.E_CANCELLED": "キャンセルされました",
+  "err.E_SERVER_RESTART": "サーバーが再起動したため中断されました",
+  "err.E_INPUTS_EXPIRED": "元の入力ファイルが失われています(再アップロードしてください)",
+  "err.E_CUDA_OOM": "GPUメモリ不足です(他のサービスが使用中の可能性があります)。右上のCPUボタンで切り替えるか、時間をおいて再度お試しください",
+  "err.E_ENCODE_TIMEOUT": "エンコードがタイムアウトしました",
+  "err.E_PIPELINE": "処理中にエラーが発生しました",
+  "err.E_HTTP": "サーバーエラーが発生しました",
+  "err.NETWORK": "サーバーへの接続が切れました。再接続しています…",
+  "err.UNKNOWN": "不明なエラー({{code}})",
+
+  "license.body": "このツールは CC BY-NC 4.0(表示 - 非営利)で提供されています。教育・研究目的での利用は自由です。商用利用についてはお問い合わせください。",
+  "license.link": "詳細(Creative Commons)",
+
+  "settings.title": "Settings",
+  "settings.output_format": "Output format",
+
+  "fmt.default": "Default",
+  "fmt.gif.desc": "スライドなど、どこでも使える",
+  "fmt.webp.desc": "縁がなめらか。Web向け",
+  "fmt.mov.desc": "動画編集ソフト向け"
+}

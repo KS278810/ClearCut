@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+data/
+node_modules/
+
+# Only this repo's own dinosaur-mascot QC deliverable (results_dinosaur/)
+# is tracked here -- any other results_*/ directory (delivered client
+# materials, or this project's other own fixture batches) stays local-only
+# and is ignored by default (this repo is published, see 第14/15計画).
+results_*/
+!results_dinosaur/

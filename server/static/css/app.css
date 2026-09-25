@@ -1,0 +1,360 @@
+/* ClearCut-server-specific layout: the two equal-size panes (source
+   video left, transparent result right), their footer rows (Clear /
+   Download), and the settings dialog's output-format cards. Everything else that used to live here (file list,
+   mode picker, results cards + metrics table, history) was removed in
+   the 2026-09-11 minimal-UI rewrite -- this is a single-file, single-job
+   tool now, no batching, no history panel. Uses only tokens.css
+   variables and shell.css primitives (buttons, segmented control,
+   progress bar, error banner). */
+
+/* .content sits a fixed, comfortable distance below the header rather
+   than being vertically centered in the full leftover viewport height.
+   Mathematical centering (the first attempt at this fix) balances the
+   BOX correctly, but the box's own content is visually top-loaded -- two
+   large panes above one small button -- so centering it still read as
+   "packed at the top, empty at the bottom" once the button's thin sliver
+   of weight sat far below the panes' visual mass. A fixed top offset
+   avoids that mismatch entirely: the composition always sits just under
+   the header, at a predictable, comfortable distance, and any leftover
+   space below is unambiguously "the rest of the page" rather than a
+   miscalculated gap. .panes itself is no longer flex:1 -- both it and
+   everything after it are sized by their own content. */
+.content {
+  display: flex; flex-direction: column; gap: 0.9rem;
+  padding-top: clamp(1.25rem, 6vh, 3.5rem);
+}
+.panes {
+  position: relative;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+@media (max-width: 720px) {
+  .panes { grid-template-columns: 1fr; }
+}
+
+/* Each side (pane + its thumbnail strip, once >=2 clips) as one column --
+   the strip lives OUTSIDE .pane (which has overflow:hidden) as a sibling,
+   not inside it. */
+.side { --foot-h: 2.25rem; display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+
+/* Footer row under each pane: context on the left (file name), the
+   pane's own action bottom-right. Always laid out (fixed height, even
+   when empty) so neither the panes nor the run button jump when a
+   button appears -- and kept OUTSIDE the pane so it never sits on top of
+   the video's native controls. */
+.pane-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  min-height: var(--foot-h); padding: 0 0.15rem;
+}
+.pane-meta {
+  min-width: 0; flex: 1;
+  font-size: 0.78rem; color: var(--text-mute);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.foot-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.btn-foot {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  min-height: var(--foot-h); padding: 0 0.95rem; border-radius: var(--radius-full);
+  font-size: 0.84rem; font-weight: 600; text-decoration: none; white-space: nowrap;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  box-shadow: none; cursor: pointer;
+}
+.btn-foot svg { width: 1em; height: 1em; }
+.btn-foot:hover:not(:disabled) {
+  filter: none; transform: none; box-shadow: var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.btn-foot-primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+.btn-foot-primary:hover:not(:disabled) { filter: brightness(1.08); border-color: transparent; }
+.btn-foot-quiet { background: transparent; color: var(--text-mute); }
+.btn-foot-quiet:hover { color: var(--text); }
+.btn-foot:disabled { opacity: 0.45; }
+
+.thumb-strip {
+  display: flex; gap: 0.5rem; overflow-x: auto; padding: 2px;
+  scrollbar-width: thin;
+}
+.thumb {
+  flex: 0 0 96px; aspect-ratio: 4 / 3; padding: 0; min-height: unset;
+  position: relative; overflow: hidden;
+  border-radius: var(--radius-m); border: 1px solid var(--border);
+  background-color: var(--surface); box-shadow: none;
+  transition: box-shadow var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.thumb:hover:not(:disabled) {
+  transform: none; filter: none;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.thumb[aria-selected="true"] { box-shadow: 0 0 0 2px var(--accent); }
+.thumb-media { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* Status marker: a small dot, bottom-right -- deliberately colour-only
+   (no text), matching the header status dot's own convention. */
+.thumb::after {
+  content: ''; position: absolute; right: 5px; bottom: 5px;
+  width: 7px; height: 7px; border-radius: 50%;
+}
+.thumb[data-status="pending"]::after { border: 1.5px solid var(--text-mute); background: transparent; }
+.thumb[data-status="running"]::after { background: var(--accent); animation: sbPulse 1.4s ease-in-out infinite; }
+.thumb[data-status="done"]::after { background: var(--success); }
+.thumb[data-status="failed"]::after { background: var(--danger); }
+.thumb[data-status="cancelled"]::after { background: var(--warn); }
+/* A thin progress line along the bottom edge while running, driven by
+   the --frac custom property app.mjs sets per thumb (its own clip's
+   fraction) -- this is where PER-CLIP progress is visible, since the
+   dock's own bar is a job-wide average (see render()'s comment). */
+.thumb[data-status="running"]::before {
+  content: ''; position: absolute; left: 0; bottom: 0; height: 2px;
+  width: calc(var(--frac, 0) * 100%); background: var(--accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .thumb[data-status="running"]::after { animation: none !important; }
+}
+
+/* With a thumbnail strip under one or both sides, .panes' own box grows
+   taller than the panes themselves, so centering .run-orb on 50% of
+   .panes no longer lines it up with the panes' own vertical centre --
+   shift it up by half the strip's added height. Only applies to the
+   2-column desktop layout: once panes stack (max-width:720px) both
+   columns are equal height regardless of a strip, so 50% already lands
+   exactly in the row gap between them. */
+@media (min-width: 721px) {
+  /* Every side carries a fixed-height .pane-foot below its pane, so the
+     pane's own centre sits half a footer (+ gap) above .panes' centre. */
+  .run-orb { top: calc(50% - (2.25rem + 0.6rem) / 2); }
+  .panes:has(.thumb-strip:not([hidden])) .run-orb {
+    top: calc(50% - (2.25rem + 0.6rem + 72px + 0.6rem) / 2);
+  }
+}
+
+.time-line {
+  font-size: 0.78rem; color: var(--text-mute); text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The run trigger sits ON the seam between the two panes -- its position
+   IS the affordance ("press this, left becomes right"), replacing a
+   separate labelled button below. Absolutely positioned, so it's out of
+   grid flow entirely; centering on .panes' own box lands it in the
+   column gap in the 2-column layout and in the row gap once panes stack
+   (max-width:720px) without a separate rule, since both panes are the
+   same size in either orientation. A pill (icon + word), not an icon-only
+   circle -- an icon alone at the pane seam read as decoration rather than
+   a control, so the label ("Convert" / "Cancel") is on the button itself. */
+.run-orb {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 3;
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  min-height: 50px; padding: 0.6rem 1.3rem; border-radius: var(--radius-full);
+  font-size: 0.92rem; font-weight: 700; white-space: nowrap;
+  border: 3px solid var(--bg);
+  box-shadow: var(--shadow-md);
+}
+.run-orb svg { width: 1.05em; height: 1.05em; }
+/* Override the generic button:hover/:active transforms (they'd replace
+   the centering translate outright and fling the button off-seam) with
+   versions that keep it centered and just scale in place. */
+.run-orb:hover:not(:disabled) { transform: translate(-50%, -50%) scale(1.06); box-shadow: var(--shadow-md); }
+.run-orb:active:not(:disabled) { transform: translate(-50%, -50%) scale(0.94); }
+.run-orb:disabled { opacity: 0.4; }
+/* A radar-style expanding ring while a job is in flight -- "is-running"
+   is toggled by app.mjs alongside the icon/label swap. ::after sits
+   relative to .run-orb's own box, so it isn't affected by the parent's
+   centering transform. */
+.run-orb.is-running::after {
+  content: ''; position: absolute; inset: -6px; border-radius: inherit;
+  border: 2px solid var(--accent); opacity: 0;
+  animation: runPulse 1.6s ease-out infinite;
+}
+@keyframes runPulse {
+  0% { transform: scale(0.92); opacity: 0.55; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* Panes feel clickable/alive on hover -- a small lift + a hint of the
+   accent color on the border, not just a flat static box. */
+.pane {
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
+}
+.pane:hover {
+  transform: translateY(-2px); box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+/* A one-shot glow around the result pane the moment a job's output
+   actually appears -- toggled via .just-done in app.mjs (adding a class
+   that's already present is a no-op, so this doesn't replay on every
+   render(), only the first time). */
+.pane.just-done { animation: paneDone 900ms var(--ease-out); }
+@keyframes paneDone {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 55%, transparent); }
+  100% { box-shadow: var(--shadow-sm); }
+}
+
+/* Video/image content fades + scales in the moment it's un-hidden --
+   applies purely via the :not([hidden]) selector, so it needs no JS
+   beyond the existing `el.hidden = false` toggles already in app.mjs,
+   and replays each time an element goes hidden -> shown again. */
+.pane-media:not([hidden]) { animation: mediaIn 420ms var(--ease-out); }
+@keyframes mediaIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .run-orb.is-running::after, .pane.just-done, .pane-media:not([hidden]) { animation: none !important; }
+  .pane:hover { transform: none; }
+  /* .run-orb's translate(-50%,-50%) is positioning, not decoration -- it
+     must survive reduced-motion (unlike shell.css's blanket
+     `button:hover { transform: none }`), only the hover/active SCALE is
+     dropped. */
+  .run-orb:hover, .run-orb:active { transform: translate(-50%, -50%) !important; }
+}
+.pane {
+  position: relative;
+  /* background-color, NOT the `background` shorthand: shorthand implies
+     background-image: none, which silently overrode #pane-out's
+     .checker background-image (confirmed by testing -- the transparency
+     checkerboard just never rendered). */
+  background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-l);
+  box-shadow: var(--shadow-sm);
+  min-height: 260px; aspect-ratio: 4 / 3;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.pane-media { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* Minimal role labels -- without them the only cue for "which side is
+   which" was the checker pattern itself, a designer convention for
+   transparency that a first-time user has no reason to already know. */
+.pane-label {
+  position: absolute; top: 0.6rem; left: 0.75rem; z-index: 1;
+  font-size: 0.72rem; font-weight: 600; color: var(--text-mute);
+  pointer-events: none;
+}
+
+.drop-zone {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  border: none; border-radius: inherit; background: transparent;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.55rem;
+  color: var(--text-mute); cursor: pointer; min-height: unset; padding: 1.5rem;
+  font-weight: 500;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.dz-icon {
+  display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface-2)); color: var(--accent);
+  margin-bottom: 0.2rem;
+}
+.dz-title { font-size: 0.92rem; color: var(--text); text-align: center; line-height: 1.5; }
+.dz-hint { font-size: 0.74rem; color: var(--text-mute); letter-spacing: 0.04em; }
+.drop-zone:hover, .drop-zone:focus-visible { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+/* Otherwise the generic `button:hover { transform: translateY(-1px) }`
+   (shell.css) applies here too, but with no matching transform TRANSITION
+   of its own (only background-color is listed above) -- an untransitioned
+   1px jump while the pane it sits in lifts smoothly over 320ms. */
+.drop-zone:hover { transform: none; }
+.drop-zone .dz-icon svg { width: 28px; height: 28px; }
+
+/* Drag feedback for the whole source pane: a dashed accent frame and one
+   short line saying what the drop will do (or, amber, why it can't). */
+.pane.drag-over { border-color: var(--accent); }
+.drop-overlay {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+  border-radius: inherit;
+  outline: 2px dashed var(--accent); outline-offset: -8px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  backdrop-filter: blur(3px);
+}
+.drop-overlay-text {
+  max-width: min(22rem, 80%); line-height: 1.45;
+  padding: 0.5rem 1rem; border-radius: var(--radius-l);
+  background: var(--accent); color: var(--on-accent);
+  font-size: 0.88rem; font-weight: 600; text-align: center; box-shadow: var(--shadow-sm);
+}
+.drop-overlay[data-tone="warn"] { outline-color: var(--warn); }
+.pane.drag-over:has(.drop-overlay[data-tone="warn"]) { border-color: var(--warn); }
+.drop-overlay[data-tone="warn"] .drop-overlay-text { background: var(--warn); color: var(--p-ink-950); }
+
+/* Reserve the progress bar's height even while idle (visibility, not
+   [hidden]/display:none) so the run button doesn't jump vertically the
+   moment a job starts -- toggled via .is-idle in app.mjs instead of the
+   `hidden` attribute. */
+.bar-track.is-idle { visibility: hidden; }
+
+/* Indeterminate sweep for "no real stage yet" (queued / waiting for the
+   GPU / preparing) -- see render()'s indeterminate flag. */
+.bar-track.is-indeterminate .bar-fill {
+  width: 32% !important; transition: none;
+  animation: barIndeterminate 1.4s var(--ease-out) infinite;
+}
+.bar-track.is-indeterminate .bar-fill.busy::after { animation: none; }
+@keyframes barIndeterminate {
+  from { transform: translateX(-105%); }
+  to { transform: translateX(320%); }
+}
+
+/* "CPU is slow for this clip" heads-up under the time line: amber text in
+   a soft pill, deliberately quieter than the error banner. */
+.note-line {
+  align-self: center; max-width: 100%;
+  font-size: 0.8rem; line-height: 1.5; text-align: center; color: var(--text);
+  padding: 0.35rem 0.85rem; border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--warn) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border));
+}
+
+/* --- Settings: Output format radio cards (one column, equal widths) --- */
+.format-group { border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+.format-group legend {
+  padding: 0; margin-bottom: 0.5rem;
+  font-size: 0.78rem; font-weight: 600; color: var(--text-mute); letter-spacing: 0.02em;
+}
+.format-card {
+  display: flex; align-items: center; gap: 0.8rem; width: 100%;
+  padding: 0.75rem 0.95rem; border-radius: var(--radius-m);
+  border: 1px solid var(--border); background: var(--surface); cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.format-card:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+.format-card:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.format-card:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.format-card input { margin: 0; width: 1.05rem; height: 1.05rem; flex-shrink: 0; accent-color: var(--accent); }
+.fc-body { display: flex; flex-direction: column; gap: 0.12rem; min-width: 0; }
+.fc-title { display: flex; align-items: center; gap: 0.5rem; font-size: 0.93rem; font-weight: 650; color: var(--text-heading); }
+.fc-tag {
+  font-size: 0.66rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;
+  padding: 0.08rem 0.45rem; border-radius: var(--radius-full);
+  color: var(--text-mute); background: var(--surface-2); border: 1px solid var(--border);
+}
+.fc-desc { font-size: 0.8rem; color: var(--text-mute); line-height: 1.45; }
+
+/* --- Dialogs (settings) --- */
+dialog {
+  border: none; border-radius: var(--radius-l); padding: 0; width: min(420px, calc(100vw - 32px)); max-width: none;
+  background: var(--surface); color: var(--text); box-shadow: var(--shadow-md);
+}
+dialog::backdrop { background: rgba(0,0,0,.4); }
+.dialog-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 1.1rem; }
+.dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.dialog-header h2 { font-size: 1.05rem; margin: 0; color: var(--text-heading); }
+.dialog-close { min-height: unset; padding: 0.3rem 0.55rem; background: var(--surface-2); color: var(--text); box-shadow: none; }
+.license-note {
+  font-size: 0.74rem; line-height: 1.6; color: var(--text-mute); margin: 0;
+  padding-top: 0.9rem; border-top: 1px solid var(--border);
+}
+.license-note a { color: var(--accent); }
+
+/* --- Brand mark (header logo; the favicon is the same drawing with
+   literal colours) --- */
+.sb-logo .bm-solid { fill: var(--accent); }
+.sb-logo .bm-chk-a { fill: var(--surface); }
+.sb-logo .bm-chk-b { fill: color-mix(in srgb, var(--text-mute) 32%, var(--surface)); }
+.sb-logo .bm-edge { fill: none; stroke: var(--text-heading); stroke-opacity: 0.16; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-track.is-indeterminate .bar-fill { animation-duration: 3s !important; }
+}

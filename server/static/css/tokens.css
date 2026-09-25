@@ -1,0 +1,38 @@
+/* Design tokens -- copied verbatim from web_cpu/index.html (the sibling
+   CPU/browser-only tool this server's UI shares a visual identity with).
+   Accent hue is a cooler, more distinct blue (~215°) rather than the
+   over-used "AI tool indigo", kept >=20° of hue separation from
+   accent-cyan/success/warn/danger so none get confused with it at a glance. */
+:root {
+  color-scheme: light dark;
+  --p-ink-950:#0a0b0f; --p-ink-900:#12141a; --p-ink-800:#1a1d24;
+  --p-paper-0:#ffffff; --p-paper-50:#f7f8fa; --p-paper-100:#eef0f3;
+  --p-brand-600:#2c5fc4; --p-brand-500:#3f72d6; --p-brand-400:#6ba3f2;
+  --p-cyan-600:#0891b2; --p-cyan-500:#22d3ee;
+  --p-good-600:#1a9c6c; --p-good-500:#2fd68e;
+  --p-gold-600:#c9821f; --p-gold-500:#f0a94e;
+  --p-bad-600:#d1403f; --p-bad-500:#ef5c5c;
+
+  --bg:var(--p-paper-50); --surface:var(--p-paper-0); --surface-2:var(--p-paper-100);
+  --border:rgba(10,11,15,.12);
+  --text:#1a1d24; --text-mute:#5b6472; --text-heading:#0a0b0f;
+  --accent:var(--p-brand-600); --accent-cyan:var(--p-cyan-600);
+  --success:var(--p-good-600); --warn:var(--p-gold-600); --danger:var(--p-bad-600);
+  --on-accent:#ffffff;
+
+  --radius-s:8px; --radius-m:10px; --radius-l:16px; --radius-full:9999px;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+  --dur-fast:150ms; --dur-base:320ms;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.06); --shadow-md:0 8px 24px rgba(0,0,0,.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:var(--p-ink-950); --surface:var(--p-ink-900); --surface-2:var(--p-ink-800);
+    --border:rgba(255,255,255,.09);
+    --text:#eef1f6; --text-mute:#8a93a6; --text-heading:#f7f8fa;
+    --accent:var(--p-brand-400); --accent-cyan:var(--p-cyan-500);
+    --success:var(--p-good-500); --warn:var(--p-gold-500); --danger:var(--p-bad-500);
+    --on-accent:var(--p-ink-950);
+    --shadow-sm:0 2px 8px rgba(0,0,0,.3); --shadow-md:0 8px 24px rgba(0,0,0,.4);
+  }
+}

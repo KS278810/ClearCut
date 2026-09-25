@@ -1,0 +1,17 @@
+# Model weights (fetched/built per docs/MODEL_WEIGHTS.md)
+checkpoints/*.onnx
+checkpoints/*.pt
+
+# Runtime output
+output/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db

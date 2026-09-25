@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ClearCut</title>
+<!-- Same mark as the header logo (below), with literal colours: a favicon
+     is rendered outside the page, so it can't read tokens.css. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3CclipPath id='c'%3E%3Crect x='1' y='1' width='22' height='22' rx='6'/%3E%3C/clipPath%3E%3Cpattern id='k' width='6' height='6' patternUnits='userSpaceOnUse'%3E%3Crect width='6' height='6' fill='%23ffffff'/%3E%3Crect width='3' height='3' fill='%23c9d0da'/%3E%3Crect x='3' y='3' width='3' height='3' fill='%23c9d0da'/%3E%3C/pattern%3E%3ClinearGradient id='h' x1='18.2' y1='0' x2='8.2' y2='24' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.25'/%3E%3Cstop offset='.5' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='.25'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg clip-path='url%28%23c%29'%3E%3Crect width='24' height='24' fill='url%28%23k%29'/%3E%3Cpath d='M0 0H18.2L8.2 24H0Z' fill='%232c5fc4'/%3E%3Cpath d='M18.2 0L8.2 24' stroke='url%28%23h%29' stroke-width='1.3'/%3E%3C/g%3E%3Crect x='1.5' y='1.5' width='21' height='21' rx='5.5' fill='none' stroke='%230a0b0f' stroke-opacity='.18'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="/static/css/tokens.css" />
+<link rel="stylesheet" href="/static/css/shell.css" />
+<link rel="stylesheet" href="/static/css/app.css" />
+</head>
+<body>
+<div class="shell">
+  <!-- Fixed DOM: app.mjs's render() only ever toggles [hidden]/src attributes
+       on these elements -- no view-state machine, no created/destroyed
+       blocks. The whole app is derived from just {files, job}. -->
+  <header class="status-strip">
+    <span class="sb-dot" id="sb-dot" data-tone="mute"></span>
+    <!-- Brand mark: a rounded square cut by one sharp diagonal -- solid
+         accent on one side, the transparency checker on the other, with a
+         thin highlight along the cut line (the moment of cutting out).
+         Colours come from tokens via app.css (.bm-*) so it follows the
+         light/dark theme; the favicon above is the same drawing. -->
+    <svg class="sb-logo" viewBox="0 0 24 24" aria-hidden="true">
+      <defs>
+        <clipPath id="bm-clip"><rect x="1" y="1" width="22" height="22" rx="6"/></clipPath>
+        <pattern id="bm-checker" width="6" height="6" patternUnits="userSpaceOnUse">
+          <rect class="bm-chk-a" width="6" height="6"/>
+          <rect class="bm-chk-b" width="3" height="3"/>
+          <rect class="bm-chk-b" x="3" y="3" width="3" height="3"/>
+        </pattern>
+        <linearGradient id="bm-glint" x1="18.2" y1="0" x2="8.2" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#fff" stop-opacity=".25"/>
+          <stop offset=".5" stop-color="#fff"/>
+          <stop offset="1" stop-color="#fff" stop-opacity=".25"/>
+        </linearGradient>
+      </defs>
+      <g clip-path="url(#bm-clip)">
+        <rect width="24" height="24" fill="url(#bm-checker)"/>
+        <path class="bm-solid" d="M0 0H18.2L8.2 24H0Z"/>
+        <path d="M18.2 0L8.2 24" stroke="url(#bm-glint)" stroke-width="1.3"/>
+      </g>
+      <rect class="bm-edge" x="1.5" y="1.5" width="21" height="21" rx="5.5"/>
+    </svg>
+    <span class="sb-brand">ClearCut</span>
+    <span class="sb-spacer"></span>
+    <!-- Language: always visible in the header (was buried in settings).
+         Button text is the language's own short name, so it never needs
+         translating. -->
+    <div class="segmented" id="lang-toggle" role="group" data-i18n-aria-label="lang.toggle_label">
+      <button type="button" data-lang="ja" lang="ja">JA</button>
+      <button type="button" data-lang="en" lang="en">EN</button>
+      <button type="button" data-lang="zh" lang="zh">中</button>
+    </div>
+    <!-- Quick manual override for the auto-detected device (see
+         server/presets.py's build_config): clicking GPU or CPU pins an
+         explicit choice; clicking the already-pressed one un-pins it back
+         to "auto" (neither button pressed = let the server decide). -->
+    <div class="segmented" id="device-toggle" role="group" data-i18n-aria-label="device.toggle_label">
+      <button type="button" data-device="cuda" data-i18n="device.gpu"></button>
+      <button type="button" data-device="cpu" data-i18n="device.cpu"></button>
+    </div>
+    <button class="sb-badge" id="settings-btn" type="button" data-i18n-aria-label="settings.title">
+      <span id="icon-settings"></span>
+    </button>
+  </header>
+
+  <div class="content">
+    <main class="panes">
+      <div class="side" id="side-src">
+        <!-- The WHOLE pane (video included) is the drop target -- see
+             app.mjs's pane drag handlers. -->
+        <div class="pane" id="pane-src">
+          <span class="pane-label" data-i18n="pane.src"></span>
+          <video id="src-video" class="pane-media" muted loop playsinline controls hidden></video>
+          <button class="drop-zone" id="drop-zone" type="button">
+            <span class="dz-icon" id="icon-upload"></span>
+            <span class="dz-title" data-i18n="drop.title"></span>
+            <span class="dz-hint">MP4 · MOV · WebM</span>
+          </button>
+          <div class="drop-overlay" id="drop-overlay" hidden>
+            <span class="drop-overlay-text" id="drop-overlay-text"></span>
+          </div>
+        </div>
+        <div class="pane-foot">
+          <span class="pane-meta" id="src-meta"></span>
+          <div class="foot-actions">
+            <button id="clear-btn" class="btn-foot" type="button" hidden>
+              <span id="icon-clear"></span><span data-i18n="btn.clear"></span>
+            </button>
+          </div>
+        </div>
+        <!-- Only shown for a multi-file job (>=2 clips) -- one thumb per
+             clip, the active one hidden rather than removed. -->
+        <div class="thumb-strip" id="src-strip" role="listbox" data-i18n-aria-label="strip.src" hidden></div>
+      </div>
+      <!-- The run trigger sits ON the seam between source and result. -->
+      <button id="run-btn" class="run-orb" type="button" disabled>
+        <span id="icon-run"></span>
+        <span id="run-btn-label"></span>
+      </button>
+      <div class="side" id="side-out">
+        <div class="pane checker" id="pane-out">
+          <span class="pane-label" data-i18n="pane.out"></span>
+          <img id="out-preview" class="pane-media" hidden alt="" />
+          <video id="out-video" class="pane-media" muted loop playsinline controls hidden></video>
+        </div>
+        <div class="pane-foot">
+          <span class="pane-meta" id="out-meta"></span>
+          <div class="foot-actions">
+            <a id="zip-btn" class="btn-foot btn-foot-quiet" hidden>
+              <span id="icon-zip"></span><span data-i18n="btn.download_all"></span>
+            </a>
+            <a id="download-btn" class="btn-foot btn-foot-primary" hidden>
+              <span id="icon-download"></span><span data-i18n="btn.download"></span>
+            </a>
+          </div>
+        </div>
+        <div class="thumb-strip" id="out-strip" role="listbox" data-i18n-aria-label="strip.out" hidden></div>
+      </div>
+    </main>
+
+    <div class="error-banner" id="error-banner" role="alert" hidden>
+      <div class="error-body">
+        <span id="error-message"></span>
+        <span id="error-detail" class="error-detail" hidden></span>
+      </div>
+      <button id="error-retry-btn" type="button" class="btn-link" hidden data-i18n="btn.retry"></button>
+    </div>
+
+    <div class="dock" id="dock">
+      <!-- waiting_gpu / queued / preparing have no other visible cue. -->
+      <span id="status-line" class="status-line" role="status" hidden></span>
+      <div class="bar-track is-idle" id="bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+           aria-valuenow="0"><div class="bar-fill busy" id="bar-fill"></div></div>
+      <span id="time-line" class="time-line" hidden></span>
+      <!-- CPU chosen for a clip the colour-only fast path can't take: a
+           heads-up, never a block (see app.mjs's cpuSlowNote). -->
+      <span id="cpu-note" class="note-line" role="status" hidden></span>
+    </div>
+  </div>
+</div>
+
+<input id="file-input" type="file" multiple accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" style="display:none" />
+
+<dialog id="settings-dialog" aria-labelledby="settings-title">
+  <div class="dialog-body">
+    <div class="dialog-header">
+      <h2 id="settings-title" data-i18n="settings.title"></h2>
+      <button class="dialog-close" id="settings-close-btn" type="button" data-i18n-aria-label="btn.close">
+        <span id="icon-settings-close"></span>
+      </button>
+    </div>
+    <!-- The one user-facing setting. device/keyer/max_side/trimap/despill/
+         QC stay available through the API/CLI, just not here. -->
+    <fieldset class="format-group" id="format-group">
+      <legend data-i18n="settings.output_format"></legend>
+      <label class="format-card" for="fmt-gif">
+        <input type="radio" name="output-format" id="fmt-gif" value="gif" />
+        <span class="fc-body">
+          <span class="fc-title">GIF <span class="fc-tag" data-i18n="fmt.default"></span></span>
+          <span class="fc-desc" data-i18n="fmt.gif.desc"></span>
+        </span>
+      </label>
+      <label class="format-card" for="fmt-webp">
+        <input type="radio" name="output-format" id="fmt-webp" value="webp" />
+        <span class="fc-body">
+          <span class="fc-title">WebP</span>
+          <span class="fc-desc" data-i18n="fmt.webp.desc"></span>
+        </span>
+      </label>
+      <label class="format-card" for="fmt-mov">
+        <input type="radio" name="output-format" id="fmt-mov" value="mov" />
+        <span class="fc-body">
+          <span class="fc-title">MOV</span>
+          <span class="fc-desc" data-i18n="fmt.mov.desc"></span>
+        </span>
+      </label>
+    </fieldset>
+    <p class="license-note">
+      <span data-i18n="license.body"></span>
+      <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener" data-i18n="license.link"></a>
+    </p>
+  </div>
+</dialog>
+
+<script type="module" src="/static/js/app.mjs"></script>
+</body>
+</html>

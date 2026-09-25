@@ -1,0 +1,81 @@
+{
+  "status.ready": "Ready",
+  "status.offline": "Can't reach the server",
+  "status.queued": "Queued…",
+  "status.running": "Processing…",
+  "status.waiting_gpu": "Waiting for free GPU memory…",
+  "status.preparing": "Preparing…",
+  "status.done": "Done",
+  "status.cancelled": "Cancelled",
+  "status.failed": "Failed",
+  "status.pending": "Pending",
+
+  "drop.title": "Drag & drop a video, or click to choose",
+  "drop.not_video": "That's not a video file (mp4 / mov / webm)",
+  "drop.replace": "Drop to replace",
+  "drop.busy": "Can't replace the video while it's being processed. Cancel it or wait until it finishes",
+  "drop.busy_short": "Can't replace while processing",
+
+  "pane.src": "Source",
+  "pane.out": "Result",
+
+  "strip.src": "Source clips",
+  "strip.out": "Result clips",
+
+  "thumb.label": "{{name}} — {{status}}",
+
+  "time.remaining": "{{v}} left",
+  "time.elapsed": "{{v}} elapsed",
+  "time.job_remaining": "{{v}} left overall",
+  "time.about_sec": "about {{n}}s",
+  "time.about_min": "about {{n}} min",
+  "time.about_hr": "about {{h}}h {{m}}m",
+
+  "device.gpu": "GPU",
+  "device.cpu": "CPU",
+  "device.toggle_label": "Switch processing device (GPU/CPU)",
+
+  "lang.toggle_label": "Display language",
+
+  "cpu.slow": "CPU is slow for this clip ({{v}}). GPU is recommended",
+  "cpu.slow_unknown": "CPU is very slow for this clip. GPU is recommended",
+
+  "btn.convert": "Convert",
+  "btn.cancel": "Cancel",
+  "btn.cancelling": "Cancelling…",
+  "btn.clear": "Clear",
+  "btn.retry": "Retry",
+  "btn.download": "Download",
+  "btn.download_all": "Download all (ZIP)",
+  "btn.close": "Close",
+
+  "err.E_INPUT_EXT": "Unsupported file type (mp4 / mov / webm only)",
+  "err.E_INPUT_UNREADABLE": "Couldn't read this video file",
+  "err.E_INPUT_TOO_LONG": "Clip is too long (max 60s / 1800 frames)",
+  "err.E_INPUT_TOO_LARGE": "File is too large, or resolution is too high",
+  "err.E_UPLOAD_TOO_LARGE": "The upload is too large",
+  "err.E_BAD_MODE": "Invalid mode",
+  "err.E_BAD_OVERRIDE": "Invalid advanced-setting value",
+  "err.E_JOB_NOT_FOUND": "Job not found",
+  "err.E_JOB_RUNNING": "Can't delete a job that's still running",
+  "err.E_CANCELLED": "Cancelled",
+  "err.E_SERVER_RESTART": "Interrupted by a server restart",
+  "err.E_INPUTS_EXPIRED": "The original input files are no longer available (please re-upload)",
+  "err.E_CUDA_OOM": "Out of GPU memory (another service may be using it). Switch to CPU with the button at the top right, or retry later",
+  "err.E_ENCODE_TIMEOUT": "Encoding timed out",
+  "err.E_PIPELINE": "An error occurred while processing",
+  "err.E_HTTP": "A server error occurred",
+  "err.NETWORK": "Lost connection to the server. Reconnecting…",
+  "err.UNKNOWN": "Unknown error ({{code}})",
+
+  "license.body": "This tool is offered under CC BY-NC 4.0 (Attribution-NonCommercial). Free for education and research; contact us for commercial use.",
+  "license.link": "Details (Creative Commons)",
+
+  "settings.title": "Settings",
+  "settings.output_format": "Output format",
+
+  "fmt.default": "Default",
+  "fmt.gif.desc": "Works anywhere, e.g. slides",
+  "fmt.webp.desc": "Smooth edges, for the web",
+  "fmt.mov.desc": "For video editing software"
+}

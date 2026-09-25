@@ -1,0 +1,22 @@
+# CPU-only install: pip install -r requirements-cpu.txt
+# For a CUDA GPU instead, use requirements-gpu.txt.
+#
+# No torch/sam2 here: SAM2 (region selection) is GPU-oriented (measured ~100s/
+# frame on CPU vs. sub-second on GPU), so the CPU path skips it entirely
+# (matte_core.py's Models.use_sam2 is False on CPU) and needs only the ONNX
+# models (YOLOX, BiRefNet).
+onnxruntime>=1.18,<2.0
+opencv-python-headless>=4.9,<5.0
+numpy>=1.26,<3.0
+scipy>=1.12
+pymatting>=1.1.9,<2.0
+Pillow>=10.0
+
+# dev/test
+pytest>=8.0
+
+# server (server/app.py, ./serve.sh) -- optional, not needed for the CLI
+# (python -m tool.pipeline / ./run.sh)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9

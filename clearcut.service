@@ -1,0 +1,16 @@
+[Unit]
+Description=ClearCut GPU service (FastAPI)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=<user>
+Group=<gpu-group>
+WorkingDirectory=/opt/clearcut
+ExecStart=/opt/clearcut/serve.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

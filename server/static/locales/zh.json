@@ -1,0 +1,81 @@
+{
+  "status.ready": "准备就绪",
+  "status.offline": "无法连接服务器",
+  "status.queued": "排队中…",
+  "status.running": "处理中…",
+  "status.waiting_gpu": "等待GPU显存空闲…",
+  "status.preparing": "准备中…",
+  "status.done": "完成",
+  "status.cancelled": "已取消",
+  "status.failed": "失败",
+  "status.pending": "等待中",
+
+  "drop.title": "拖放视频文件，或点击选择",
+  "drop.not_video": "不是视频文件(mp4 / mov / webm)",
+  "drop.replace": "拖放以替换",
+  "drop.busy": "处理中无法替换视频。请取消或等待处理完成",
+  "drop.busy_short": "处理中无法替换",
+
+  "pane.src": "Source",
+  "pane.out": "Result",
+
+  "strip.src": "原始视频列表",
+  "strip.out": "结果列表",
+
+  "thumb.label": "{{name}} — {{status}}",
+
+  "time.remaining": "剩余 {{v}}",
+  "time.elapsed": "已用 {{v}}",
+  "time.job_remaining": "整体剩余 {{v}}",
+  "time.about_sec": "约{{n}}秒",
+  "time.about_min": "约{{n}}分钟",
+  "time.about_hr": "约{{h}}小时{{m}}分",
+
+  "device.gpu": "GPU",
+  "device.cpu": "CPU",
+  "device.toggle_label": "切换处理设备(GPU/CPU)",
+
+  "lang.toggle_label": "显示语言",
+
+  "cpu.slow": "用CPU处理此视频需要{{v}}。建议使用GPU",
+  "cpu.slow_unknown": "用CPU处理此视频会非常慢。建议使用GPU",
+
+  "btn.convert": "Convert",
+  "btn.cancel": "Cancel",
+  "btn.cancelling": "Cancelling…",
+  "btn.clear": "Clear",
+  "btn.retry": "Retry",
+  "btn.download": "Download",
+  "btn.download_all": "Download all (ZIP)",
+  "btn.close": "Close",
+
+  "err.E_INPUT_EXT": "不支持的文件格式(仅限 mp4 / mov / webm)",
+  "err.E_INPUT_UNREADABLE": "无法读取该视频文件",
+  "err.E_INPUT_TOO_LONG": "视频过长(最长60秒 / 1800帧)",
+  "err.E_INPUT_TOO_LARGE": "文件过大或分辨率过高",
+  "err.E_UPLOAD_TOO_LARGE": "上传内容过大",
+  "err.E_BAD_MODE": "无效的模式",
+  "err.E_BAD_OVERRIDE": "高级设置的值无效",
+  "err.E_JOB_NOT_FOUND": "未找到任务",
+  "err.E_JOB_RUNNING": "无法删除正在运行的任务",
+  "err.E_CANCELLED": "已取消",
+  "err.E_SERVER_RESTART": "因服务器重启而中断",
+  "err.E_INPUTS_EXPIRED": "原始输入文件已丢失(请重新上传)",
+  "err.E_CUDA_OOM": "GPU显存不足(可能有其他服务正在使用)。请点击右上角的CPU按钮切换，或稍后重试",
+  "err.E_ENCODE_TIMEOUT": "编码超时",
+  "err.E_PIPELINE": "处理过程中发生错误",
+  "err.E_HTTP": "服务器发生错误",
+  "err.NETWORK": "与服务器的连接已断开，正在重新连接…",
+  "err.UNKNOWN": "未知错误({{code}})",
+
+  "license.body": "本工具基于 CC BY-NC 4.0(署名-非商业性使用)提供。教育和研究用途可免费使用；商业用途请联系我们。",
+  "license.link": "详情(知识共享)",
+
+  "settings.title": "Settings",
+  "settings.output_format": "Output format",
+
+  "fmt.default": "Default",
+  "fmt.gif.desc": "通用，可用于幻灯片等",
+  "fmt.webp.desc": "边缘平滑，适合网页",
+  "fmt.mov.desc": "适合视频编辑软件"
+}

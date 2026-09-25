@@ -1,0 +1,169 @@
+/* Shell primitives, trimmed for the two-pane minimal UI (2026-09-11
+   rewrite). Removed: brand wordmark, boot-loader rings/scan, stepper,
+   frame-counter, done-panel -- none of that exists in this layout
+   anymore. Kept: status strip, progress bar, error banner, buttons,
+   checker background, spinner, reduced-motion. */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+/* A slow, very low-opacity drifting glow behind everything -- ambiance,
+   not decoration you're meant to consciously notice. Fixed + negative
+   z-index so it never affects layout or intercepts clicks; blurred and
+   kept behind a -1 stacking context so it can't wash out real content. */
+body::before {
+  content: ""; position: fixed; inset: -15%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(560px circle at 18% 15%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 62%),
+    radial-gradient(520px circle at 82% 75%, color-mix(in srgb, var(--accent-cyan) 8%, transparent), transparent 62%);
+  filter: blur(60px);
+  animation: ambientDrift 24s ease-in-out infinite alternate;
+}
+@keyframes ambientDrift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(2.5%, -2.5%) scale(1.06); }
+}
+
+.shell { max-width: 1280px; margin: 0 auto; padding: 0 1rem 1.5rem; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* --- Status strip (always visible, sticky) --- */
+.status-strip {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.7rem 0.25rem;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.sb-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-mute); flex-shrink: 0; }
+.sb-dot[data-tone="busy"] { background: var(--accent); animation: sbPulse 1.4s ease-in-out infinite; }
+.sb-dot[data-tone="good"] { background: var(--success); }
+.sb-dot[data-tone="warn"] { background: var(--warn); }
+.sb-dot[data-tone="danger"] { background: var(--danger); }
+@keyframes sbPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+/* A small colored mark + wordmark reads as an actual brand lockup rather
+   than plain UI-label text sized up (the first attempt at this fix used a
+   plain letter "H" badge -- replaced by the ClearCut "cut" mark, see its
+   own comment in index.html; colours are in app.css's .bm-* rules). */
+.sb-logo { width: 24px; height: 24px; flex-shrink: 0; display: block; }
+.sb-brand { font-size: 1rem; font-weight: 700; color: var(--text-heading); letter-spacing: -0.01em; }
+.sb-spacer { flex: 1; }
+.sb-badge {
+  position: relative;
+  display: flex; align-items: center; gap: 0.35rem;
+  background: var(--surface-2); color: var(--text-mute);
+  border: 1px solid var(--border); border-radius: var(--radius-full);
+  padding: 0.32rem 0.7rem; font-size: 0.78rem; cursor: pointer; min-height: unset;
+  font-weight: 500;
+}
+.sb-badge::before { content: ''; position: absolute; inset: -10px; }
+.sb-badge:hover:not(:disabled) { color: var(--text); filter: none; transform: none; box-shadow: none; }
+.sb-badge svg { width: 14px; height: 14px; transition: transform var(--dur-base) var(--ease-out); }
+.sb-badge:hover svg { transform: rotate(45deg); }
+
+.segmented { display: flex; border: 1px solid var(--border); border-radius: var(--radius-full); overflow: hidden; flex-shrink: 0; }
+.segmented button {
+  min-height: unset; border-radius: 0; padding: 0.28rem 0.65rem; font-size: 0.72rem; font-weight: 600;
+  background: var(--surface-2); color: var(--text-mute); box-shadow: none; transform: none;
+}
+.segmented button:hover:not(:disabled) { filter: none; transform: none; box-shadow: none; color: var(--text); }
+.segmented button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+/* Neither GPU/CPU button is "pressed" while device is on auto -- this
+   hints which side auto actually resolved to on this host (see app.mjs's
+   syncDeviceToggle) without claiming it was explicitly chosen. Deliberately
+   subtle: a thin accent underline, not a filled background (that's
+   reserved for aria-pressed="true"). An inset ring used to be drawn here,
+   but the pill's rounded overflow clipped it into a stray bracket. */
+.segmented button.is-auto-resolved { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 70%, transparent); color: var(--text); }
+
+/* Narrow screens: the header carries brand + language + device + gear,
+   which overflowed a 390px phone -- tighten spacing instead of wrapping. */
+@media (max-width: 480px) {
+  .status-strip { gap: 0.4rem; }
+  .segmented button { padding: 0.28rem 0.48rem; }
+  .sb-badge { padding: 0.32rem 0.5rem; }
+  .sb-brand { font-size: 0.95rem; }
+}
+
+.checker {
+  background-image:
+    linear-gradient(45deg, rgba(128,128,128,.14) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(128,128,128,.14) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(128,128,128,.14) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(128,128,128,.14) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+/* --- Dock: action area --- */
+.dock { display: flex; flex-direction: column; gap: 0.7rem; padding-top: 0.9rem; }
+.status-line { font-size: 0.8rem; color: var(--text-mute); text-align: center; }
+.bar-track { background: var(--surface-2); border-radius: var(--radius-full); height: 8px; overflow: hidden; position: relative; }
+.bar-fill { background: var(--accent); height: 100%; width: 0%; transition: width var(--dur-base) var(--ease-out); border-radius: inherit; position: relative; overflow: hidden; }
+/* Scoped to :not(.is-idle) -- .busy is a fixed markup class (index.html),
+   never toggled by app.mjs, so without this scope the glow/sheen animate
+   continuously even while the track sits at visibility:hidden. */
+.bar-track:not(.is-idle) .bar-fill.busy { box-shadow: 0 0 10px 1px color-mix(in srgb, var(--accent) 55%, transparent); }
+.bar-track:not(.is-idle) .bar-fill.busy::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  animation: barSheen 1.6s linear infinite;
+}
+@keyframes barSheen { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+/* --- Error banner (also used for the offline state, with a retry action) --- */
+.error-banner {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+  color: var(--text); border-radius: var(--radius-m); padding: 0.7rem 1rem; font-size: 0.86rem;
+  margin-top: 0.9rem;
+}
+/* Same shape, amber instead of red -- a heads-up ("this may be less
+   accurate"), not a failure. */
+.error-banner[data-tone="warn"] {
+  background: color-mix(in srgb, var(--warn) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--warn) 35%, var(--border));
+}
+.error-body { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; min-width: 0; }
+/* The coded message stays the primary line; the server-sanitized detail
+   (which stage, which clip, the raw ffmpeg/CUDA text) is secondary --
+   present but not competing with it for attention. */
+.error-detail { font-size: 0.76rem; color: var(--text-mute); word-break: break-word; }
+
+/* --- Buttons --- */
+button, .btn {
+  font: inherit; border: none; border-radius: var(--radius-m);
+  padding: 0.7rem 1.4rem; min-height: 48px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  background: var(--accent); color: var(--on-accent);
+  transition: filter var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+button:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+button:active:not(:disabled) { filter: brightness(0.95); transform: translateY(0); }
+button:disabled { opacity: 0.5; cursor: default; }
+.btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.btn-link {
+  background: transparent; color: var(--text-mute); border: none; min-height: unset;
+  padding: 0.3rem 0; font-size: 0.85rem; font-weight: 500; text-decoration: underline;
+  box-shadow: none;
+}
+.btn-link:hover:not(:disabled) { color: var(--text); filter: none; transform: none; box-shadow: none; }
+:where(button, .btn) svg { width: 1.1em; height: 1.1em; flex-shrink: 0; }
+button:focus-visible, .drop-zone:focus-visible, a:focus-visible, [tabindex]:focus-visible, dialog:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-dot[data-tone="busy"], .bar-fill.busy::after, body::before { animation: none !important; }
+  * { transition-duration: 50ms !important; }
+  /* transition-duration alone doesn't stop a hover/active TRANSFORM from
+     happening, just how long it takes -- these two were left moving. */
+  button:hover, button:active, .sb-badge:hover svg { transform: none !important; }
+}

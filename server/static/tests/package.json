@@ -1,0 +1,11 @@
+{
+  "name": "heroextractor-frontend-tests",
+  "private": true,
+  "description": "Puppeteer E2E tests for server/static/ against a fake-pipeline FastAPI backend (see fake_server.py). Playwright is this user's usual E2E tool but isn't installed on this machine; Puppeteer already is (~/.local-chrome), so these use that instead -- functionally equivalent for this purpose.",
+  "scripts": {
+    "test": "node --test e2e.test.mjs"
+  },
+  "devDependencies": {
+    "puppeteer": "^25.8.0"
+  }
+}

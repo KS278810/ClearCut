@@ -1,0 +1,31 @@
+# CUDA GPU install: pip install -r requirements-gpu.txt
+# Requires an NVIDIA GPU with a matching driver already installed (CUDA/cuDNN
+# runtime libraries are pulled in by these wheels; nothing is bundled/redistributed
+# by this project). For CPU-only machines, use requirements-cpu.txt instead.
+--extra-index-url https://download.pytorch.org/whl/cu126
+onnxruntime-gpu>=1.18,<2.0
+# onnxruntime-gpu's CUDAExecutionProvider needs these at runtime; they are not
+# pulled in automatically. matte_core.py registers their bin/ dirs via
+# os.add_dll_directory so no manual PATH edits are needed on Windows.
+nvidia-cublas-cu12
+nvidia-cudnn-cu12
+nvidia-cufft-cu12
+nvidia-curand-cu12
+nvidia-cuda-runtime-cu12
+torch>=2.2,<3.0
+torchvision>=0.17,<1.0
+sam2>=1.1.0,<2.0.0
+opencv-python-headless>=4.9,<5.0
+numpy>=1.26,<3.0
+scipy>=1.12
+pymatting>=1.1.9,<2.0
+Pillow>=10.0
+
+# dev/test
+pytest>=8.0
+
+# server (server/app.py, ./serve.sh) -- optional, not needed for the CLI
+# (python -m tool.pipeline / ./run.sh)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
